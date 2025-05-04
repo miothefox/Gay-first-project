@@ -1,5 +1,5 @@
 project "gay"
-kind "ConsoleApp"
+kind "WindowedApp"
 debugdir "../working"
 
 files{
@@ -9,3 +9,10 @@ files{
     "**.hpp",
     "**.inl",
 }
+
+includedirs{
+    "%{prj.location}"
+}
+
+filter "system:windows"
+links "opengl32"
