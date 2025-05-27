@@ -11,7 +11,12 @@ files{
 }
 
 includedirs{
-    "%{prj.location}"
+    "%{prj.location}",
+    "%{wks.location}/vendor/glad/include",
+}
+
+links {
+    "glad",
 }
 
 filter "system:windows"

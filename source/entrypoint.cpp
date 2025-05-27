@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <Windows.h>
-#include "glcorearb.h"
+
+#include <glad/gl.h>
 #include "wglext.h"
 
 bool windowShouldClose = false;
@@ -26,76 +27,15 @@ void poll_events() {
 	}
 }
 
+HMODULE glModule;
 
-PFNGLGETSTRINGPROC glGetString = nullptr;
-PFNGLCLEARCOLORPROC glClearColor = nullptr;
-PFNGLCLEARPROC glClear = nullptr;
-PFNGLCREATEBUFFERSPROC glCreateBuffers = nullptr;
-PFNGLCREATEVERTEXARRAYSPROC glCreateVertexArrays = nullptr;
-PFNGLNAMEDBUFFERSTORAGEPROC glNamedBufferStorage = nullptr;
-PFNGLVERTEXARRAYVERTEXBUFFERPROC glVertexArrayVertexBuffer = nullptr;
-PFNGLENABLEVERTEXARRAYATTRIBPROC glEnableVertexArrayAttrib = nullptr;
-PFNGLVERTEXARRAYATTRIBBINDINGPROC glVertexArrayAttribBinding = nullptr;
-PFNGLVERTEXARRAYATTRIBFORMATPROC glVertexArrayAttribFormat = nullptr;
-PFNGLBINDVERTEXARRAYPROC glBindVertexArray = nullptr;
-PFNGLDRAWARRAYSPROC glDrawArrays = nullptr;
-PFNGLDELETEBUFFERSPROC glDeleteBuffers = nullptr;
-PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays = nullptr;
 
-PFNGLCREATESHADERPROC glCreateShader = nullptr;
-PFNGLSHADERSOURCEPROC glShaderSource = nullptr;
-PFNGLCOMPILESHADERPROC glCompileShader = nullptr;
-PFNGLGETSHADERIVPROC glGetShaderiv = nullptr;
-PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog = nullptr;
-PFNGLDELETESHADERPROC glDeleteShader = nullptr;
-PFNGLCREATEPROGRAMPROC glCreateProgram = nullptr;
-PFNGLATTACHSHADERPROC glAttachShader = nullptr;
-PFNGLLINKPROGRAMPROC glLinkProgram = nullptr;
-PFNGLDETACHSHADERPROC glDetachShader = nullptr;
-PFNGLGETPROGRAMIVPROC glGetProgramiv = nullptr;
-PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog = nullptr;
-PFNGLUSEPROGRAMPROC glUseProgram = nullptr;
-PFNGLDELETEPROGRAMPROC glDeleteProgram = nullptr;
-
-void(*get_proc_address(HMODULE module, char const* procname))(void) {
+void(*get_proc_address(char const* procname))(void) {
 	void(*proc)(void) = (void(*)(void))wglGetProcAddress(procname);
-	if (!proc) proc = (void(*)(void))GetProcAddress(module, procname);
+	if (!proc) proc = (void(*)(void))GetProcAddress(glModule, procname);
 	return proc;
 }
-#define LOAD_GL(type, name) do { name = (type)get_proc_address(module, #name); assert(name); } while(0)
-void load_ogl_functions() {
-	HMODULE module = LoadLibraryA("opengl32");
-	LOAD_GL(PFNGLGETSTRINGPROC, glGetString);
-	LOAD_GL(PFNGLCLEARCOLORPROC, glClearColor);
-	LOAD_GL(PFNGLCLEARPROC, glClear);
-	LOAD_GL(PFNGLCREATEBUFFERSPROC, glCreateBuffers);
-	LOAD_GL(PFNGLCREATEVERTEXARRAYSPROC, glCreateVertexArrays);
-	LOAD_GL(PFNGLNAMEDBUFFERSTORAGEPROC, glNamedBufferStorage);
-	LOAD_GL(PFNGLVERTEXARRAYVERTEXBUFFERPROC, glVertexArrayVertexBuffer);
-	LOAD_GL(PFNGLENABLEVERTEXARRAYATTRIBPROC, glEnableVertexArrayAttrib);
-	LOAD_GL(PFNGLVERTEXARRAYATTRIBBINDINGPROC, glVertexArrayAttribBinding);
-	LOAD_GL(PFNGLVERTEXARRAYATTRIBFORMATPROC, glVertexArrayAttribFormat);
-	LOAD_GL(PFNGLBINDVERTEXARRAYPROC, glBindVertexArray);
-	LOAD_GL(PFNGLDRAWARRAYSPROC, glDrawArrays);
-	LOAD_GL(PFNGLDELETEBUFFERSPROC, glDeleteBuffers);
-	LOAD_GL(PFNGLDELETEVERTEXARRAYSPROC, glDeleteVertexArrays);
 
-	LOAD_GL(PFNGLCREATESHADERPROC, glCreateShader);
-	LOAD_GL(PFNGLSHADERSOURCEPROC, glShaderSource);
-	LOAD_GL(PFNGLCOMPILESHADERPROC, glCompileShader);
-	LOAD_GL(PFNGLGETSHADERIVPROC, glGetShaderiv);
-	LOAD_GL(PFNGLGETSHADERINFOLOGPROC, glGetShaderInfoLog);
-	LOAD_GL(PFNGLDELETESHADERPROC, glDeleteShader);
-	LOAD_GL(PFNGLCREATEPROGRAMPROC, glCreateProgram);
-	LOAD_GL(PFNGLATTACHSHADERPROC, glAttachShader);
-	LOAD_GL(PFNGLLINKPROGRAMPROC, glLinkProgram);
-	LOAD_GL(PFNGLDETACHSHADERPROC, glDetachShader);
-	LOAD_GL(PFNGLGETPROGRAMIVPROC, glGetProgramiv);
-	LOAD_GL(PFNGLGETPROGRAMINFOLOGPROC, glGetProgramInfoLog);
-	LOAD_GL(PFNGLUSEPROGRAMPROC, glUseProgram);
-	LOAD_GL(PFNGLDELETEPROGRAMPROC, glDeleteProgram);
-}
-#undef LOAD_GL
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd){
 
@@ -170,7 +110,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	hglrc = wglCreateContextAttribsARB(hdc, NULL, attribs);
 	wglMakeCurrent(hdc, hglrc);
 
-	load_ogl_functions();
+	glModule = LoadLibraryA("opengl32");
+	gladLoadGL(&get_proc_address);
 
 	printf("%s\n", glGetString(GL_VENDOR));
 	printf("%s\n", glGetString(GL_RENDERER));
